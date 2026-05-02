@@ -68,7 +68,7 @@ int rc= fread(&conn->db->max_rows,sizeof(int),1,conn->file);
 if(rc!=1)
    die("could not load file");
 
-int rc= fread(&conn->db->max_data,sizeof(int),1,conn->file);
+ rc= fread(&conn->db->max_data,sizeof(int),1,conn->file);
 
 if(rc!=1)
    die("could not load file");
@@ -423,7 +423,7 @@ if (argc>3){
 
 char* filename= argv[1];
 char action = argv[2][0];
-
+struct Connection* conn;
 
 int id=0;
 
@@ -445,24 +445,27 @@ if (argc>3){
              if (max_rows <=0 || max_data <=0){
                 die("invalid size values");
               }
-             struct Connection* conn = Database_open(filename, action,max_rows,max_data);
+             conn = Database_open(filename, action,max_rows,max_data);
              Database_create(conn);
              Database_write(conn);
              break;
 
- case 'g':   if (argc!=4);
+ case 'g':   if (argc!=4){
              die("Need an ID to get");
+              }
              Database_get(conn, id);
              break;
 
-case 's':   if (argc!=6);
+case 's':   if (argc!=6){
              die("Need an ID, name, email to set");
+             }
              Database_set(conn, id,argv[4], argv[5]);
              Database_write(conn);
              break;
 
-case 'd':   if (argc!=4);
+case 'd':   if (argc!=4){
              die("Need an ID to delete ");
+              }
              Database_delete(conn, id);
              Database_write(conn);
              break;
