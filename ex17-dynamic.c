@@ -82,8 +82,8 @@ for(int i=0; i< conn->db->max_rows ; i++){
 struct Address* addr = &conn->db->rows[i];
 
 
-fread(addr->id , sizeof(int),1,conn->file);
-fread(addr->set, sizeof(int),1,conn->file);
+fread(&addr->id , sizeof(int),1,conn->file);
+fread(&addr->set, sizeof(int),1,conn->file);
 
 if(addr->set){
 
@@ -284,20 +284,7 @@ addr->set=1;
 
 
 
-/*addr->id=id;
-addr->set=1;
-char* res = strncpy(addr->name,name, conn->db->max_data-1);
-addr->name[conn->db->max_data-1]='\0';
 
-if (!res){
-    die ("error writing name");
-}
-
-res= strncpy(addr->email,email,conn->db->max_data-1);
-addr->email[conn->db->max_data-1]='\0';
-if (!res){
-    die ("error writing email");
-}  */
 
 }
 
@@ -396,7 +383,7 @@ for (int i=0; i < db->max_rows ; i++){
 	          continue;
                   }
 
-          if (( addr->name && strtstr(addr->name,query)) || (addr->email && strstr(addr->email,query))){
+          if (( addr->name && strstr(addr->name,query)) || (addr->email && strstr(addr->email,query))){
 
                    Address_print(addr);
                     found =1;
@@ -424,15 +411,10 @@ if (argc>3){
 char* filename= argv[1];
 char action = argv[2][0];
 struct Connection* conn;
-
+int max_rows=0;
+int max_data=0;	
 int id=0;
 
-if (argc>3){
-    id = atoi(argv[3]);
-}
- if (id>=conn->db->max_rows){
-     die ("there are not that many records");
- }
 
 
  switch (action){
@@ -440,8 +422,8 @@ if (argc>3){
  case 'c':   if (argc<5){
                 die("USAGE: [] dbfile action max_rows max_data ");
               }
-             int max_rows = atoi(argv[3]);
-             int max_data = atoi(argv[4]);
+              max_rows = atoi(argv[3]);
+              max_data = atoi(argv[4]);
              if (max_rows <=0 || max_data <=0){
                 die("invalid size values");
               }
@@ -453,6 +435,7 @@ if (argc>3){
  case 'g':   if (argc!=4){
              die("Need an ID to get");
               }
+	         id = atoi(argv[3]);
              Database_get(conn, id);
              break;
 
