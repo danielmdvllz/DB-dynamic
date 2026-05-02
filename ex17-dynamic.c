@@ -43,9 +43,9 @@ exit (1);
 
 void Address_print (struct Address* addr){    
 
-printf("ID: %d | Name: %s | Email: %s\n");
+printf("ID:  | Name:  | Email: \n");
 
-if ( !addr || !addr-set){
+if ( !addr || !addr->set){
      printf("(empty record)\n");
         return;
      }
@@ -63,12 +63,12 @@ void Database_load(struct Connection* conn){
 
 rewind(conn->file);
  
-int rc= fread(&conn->db->max_rows,sizeof(struct int),1,conn->file);
+int rc= fread(&conn->db->max_rows,sizeof(int),1,conn->file);
 
 if(rc!=1)
    die("could not load file");
 
-int rc= fread(&conn->db->max_data,sizeof(struct int),1,conn->file);
+int rc= fread(&conn->db->max_data,sizeof(int),1,conn->file);
 
 if(rc!=1)
    die("could not load file");
@@ -166,7 +166,7 @@ if(!conn){
 if (conn->db){
     if(conn->db->rows){
        
-        for (int i=0; i <db->max_rows ;i++){
+        for (int i=0; i < conn->db->max_rows ;i++){
          struct Address* addr= &conn->db->rows[i];
              
 		if (addr->set){
@@ -405,17 +405,10 @@ for (int i=0; i < db->max_rows ; i++){
    }
 
          if(!found){
-             printf("No results found\n);
+             printf("No results found\n");
                 }
 
 }
-
-
-
-
-
-}
-
 
 
 
