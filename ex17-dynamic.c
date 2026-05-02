@@ -488,7 +488,7 @@ case 'f':
 	    break;
 
  
-default: die("invalid action: c- create  g- get   s- set   d- delete l- list ");
+default: die("invalid action: c- create  g- get   s- set   d- delete l- list f- find ");
 
 
  }
