@@ -410,7 +410,7 @@ if (argc>3){
 
 char* filename= argv[1];
 char action = argv[2][0];
-struct Connection* conn;
+struct Connection* conn=NULL;
 int max_rows=0;
 int max_data=0;	
 int id=0;
