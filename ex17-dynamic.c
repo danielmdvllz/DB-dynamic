@@ -58,21 +58,21 @@ printf("%d %s %s\n",
 }
 
 
-void Database_load(struct Connection* conn){                      
+void Database_load(struct Connection* conn) {                      
 
 
 rewind(conn->file);
  
 int rc= fread(&conn->db->max_rows,sizeof(int),1,conn->file);
 
-if(rc!=1)
+if(rc!=1){
    die("could not load file");
-
+     }
  rc= fread(&conn->db->max_data,sizeof(int),1,conn->file);
 
-if(rc!=1)
+if(rc!=1){
    die("could not load file");
-
+   }
 
 conn->db->rows = calloc(conn->db->max_rows, sizeof( struct Address));
 
@@ -98,18 +98,8 @@ fread(&len,sizeof(int),1,conn->file);
 addr->email = malloc(len+1);
 fread(addr->email,sizeof(char),len,conn->file);
 addr->email[len]='\0';
-
-
-}
-
-
-
-
-
-}
-
-
-
+      }
+    }
 }
 
 
@@ -118,40 +108,39 @@ struct Connection* Database_open (const char* filename, char mode, int max_rows,
 
 struct Connection* conn = malloc (sizeof(struct Connection));
 
- if (!conn)
+ if (!conn){
       die ("memory error");
-    
+     }
      conn->db =malloc (sizeof(struct Database));
 
-    if(!conn->db)
+    if(!conn->db){
       die ("memory error");
-
+      }
 //dynamic part
 
-conn->db->max_rows= max_rows;
-conn->db->max_data= max_data;
+conn->db->rows= NULL;
 
 
-conn->db->rows = calloc(max_rows,sizeof(struct Address));
- if (!conn->db->rows){
-       die("memory error");
-     }
+if (mode == 'c'){
 
+   conn->file =  fopen(filename,"w+");
+  conn->db->max_rows= max_rows;
+  conn->db->max_data= max_data;
 
+}
 
-   if (mode == 'c')
-       conn->file = fopen(filename,"w+");
-   else 
+else {
       conn->file = fopen(filename,"r+");
+      }
 
-   if (!conn->file)
-        die("could not load database\n");
-
-   if (conn->file)
-      Database_load(conn);
-
+if (!conn->file){
+        die("could not open file\n");
+      }
+      
    
-
+   if (mode!= 'c'){
+      Database_load(conn);
+     }
 
 return conn;
 }
@@ -227,10 +216,13 @@ if(addr->set){
 
 void Database_create (struct Connection* conn){
 
-int i=0;
+conn->db->rows = calloc(conn->db->max_rows, sizeof(struct Address));
 
+if (!conn->db->rows){
+ die("memory error");
+}
 
-for (i=0; i< conn->db->max_rows ;i++){
+for (int i=0; i< conn->db->max_rows ;i++){
 
 struct Address addr = { .id=i, .set=0};
 
@@ -284,7 +276,20 @@ addr->set=1;
 
 
 
+/*addr->id=id;
+addr->set=1;
+char* res = strncpy(addr->name,name, conn->db->max_data-1);
+addr->name[conn->db->max_data-1]='\0';
 
+if (!res){
+    die ("error writing name");
+}
+
+res= strncpy(addr->email,email,conn->db->max_data-1);
+addr->email[conn->db->max_data-1]='\0';
+if (!res){
+    die ("error writing email");
+}  */
 
 }
 
@@ -387,7 +392,7 @@ for (int i=0; i < db->max_rows ; i++){
 
                    Address_print(addr);
                     found =1;
-              }
+                    }
 
    }
 
@@ -399,56 +404,71 @@ for (int i=0; i < db->max_rows ; i++){
 
 
 
-
-
-
 int main(int argc, char* argv [] ){
 
-if (argc>3){
-    printf("Usage: ./ex17 [<bdfile> <action>  [action parameters]");
+if (argc<3){
+    printf("Usage: ./prog <bdfilename> <action>  [action parameters]\n");
+    printf("Create: ./prog <bdfilename> c <max_rows> <max_data> \n");
+    printf("Set: ./prog <bdfilename> s <id> <name> <email> \n");
+    printf("Get: ./prog <bdfilename> g <id> \n");
+    printf("Delete: ./prog <bdfilename> d <id>  \n");
+    printf("List: ./prog <bdfilename> l  \n");
+    printf("Find: ./prog <bdfilename> f <term>  \n");
+    return 1;
 }
 
 char* filename= argv[1];
 char action = argv[2][0];
 struct Connection* conn=NULL;
 int max_rows=0;
-int max_data=0;	
+int max_data=0;
 int id=0;
 
+if (action == 'c'){
+     if (argc < 5) {
+      die("need max_rows and max_data");
+            }
+      max_rows = atoi(argv[3]);
+      max_data = atoi(argv[4]);
+      if (max_rows <=0 || max_data <=0){
+                die("invalid size values");
+              }
+      conn = Database_open(filename,action,max_rows,max_data);      
+ }
+ else{
+ conn = Database_open(filename,action,0,0);
+ }
 
 
  switch (action){
 
- case 'c':   if (argc<5){
-                die("USAGE: [] dbfile action max_rows max_data ");
-              }
-              max_rows = atoi(argv[3]);
-              max_data = atoi(argv[4]);
-             if (max_rows <=0 || max_data <=0){
-                die("invalid size values");
-              }
-             conn = Database_open(filename, action,max_rows,max_data);
+ case 'c':   
              Database_create(conn);
              Database_write(conn);
              break;
 
  case 'g':   if (argc!=4){
              die("Need an ID to get");
-              }
-	         id = atoi(argv[3]);
+             }
+            
+              id = atoi(argv[3]);
+               
              Database_get(conn, id);
              break;
 
 case 's':   if (argc!=6){
              die("Need an ID, name, email to set");
              }
+              id = atoi(argv[3]);
              Database_set(conn, id,argv[4], argv[5]);
+             
              Database_write(conn);
              break;
 
 case 'd':   if (argc!=4){
              die("Need an ID to delete ");
-              }
+             }     
+              id = atoi(argv[3]);
              Database_delete(conn, id);
              Database_write(conn);
              break;
@@ -467,7 +487,7 @@ case 'f':
 	    break;
 
  
-default: die("invalid action: c- create  g- get   s- set   d- delete l- list f- find ");
+default: die("invalid action: c create  g get   s set   d delete  l list f find ");
 
 
  }
@@ -476,4 +496,3 @@ default: die("invalid action: c- create  g- get   s- set   d- delete l- list f- 
 
 return 0;
 }
-
