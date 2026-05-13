@@ -408,7 +408,8 @@ int main(int argc, char* argv [] ){
 
 if (argc<3){
     printf("Usage: ./prog <bdfilename> <action>  [action parameters]\n");
-    printf("Create: ./prog <bdfilename> c <max_rows> <max_data> \n");
+    printf("Open: ./prog <bdfilename> o  \n");
+	printf("Create: ./prog <bdfilename> c <max_rows> <max_data> \n");
     printf("Set: ./prog <bdfilename> s <id> <name> <email> \n");
     printf("Get: ./prog <bdfilename> g <id> \n");
     printf("Delete: ./prog <bdfilename> d <id>  \n");
@@ -441,6 +442,17 @@ if (action == 'c'){
 
 
  switch (action){
+
+case 'o':   if(argc!=3){
+	         die ("Need a filename to open");
+             }
+             if(argc==3){
+             filename = argv[1];
+			 action argv[2][0];
+			 conn = Database_open(filename,action,0,0);
+			 }
+             break;
+	 
 
  case 'c':   
              Database_create(conn);
